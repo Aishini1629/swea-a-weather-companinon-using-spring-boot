@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <title>Weather App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://www.transparenttextures.com/patterns/clouds.png');
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .card {
+            width: 100%;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            background-color: #fff;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 24px;
+        }
+
+        .card-content {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .weather-icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 10px;
+        }
+
+        .forecast-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+
+        .forecast-card {
+            width: calc(33.33% - 20px);
+            text-align: center;
+            margin: 10px;
+            padding: 15px;
+            border-radius: 15px;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .forecast-card:hover {
+            transform: scale(1.05);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        #getWeatherBtn {
+            margin-left: 10px;
+        }
+
+        #weatherInfo {
+            text-align: center;
+        }
+
+        .air-quality-container {
+            margin-top: 20px;
+        }
+
+        .air-quality {
+            text-align: left;
+        }
+
+        .download-button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .download-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">Weather App</h1>
+        <div class="input-group mb-3">
+            <input type="text" id="cityInput" class="form-control" placeholder="Enter city">
+            <button id="getWeatherBtn" class="btn btn-primary">Get Weather</button>
+        </div>'
+    
+        <div class="row">
+            
+            <div class="row">
+                <div id="weatherInfo" class="mt-4"></div>
+            </div>
+           
+                <div id="airQualityInfo" class="air-quality-container mt-4"></div>
+          
+       
+      
+    </div>
+    <script>
+        const apiKey = '3138f4ca4ea11b45a1e14d54f0967d3b';
+        const getWeatherBtn = document.getElementById('getWeatherBtn');
+        const cityInput = document.getElementById('cityInput');
+        const weatherInfo = document.getElementById('weatherInfo');
+        const airQualityInfo = document.getElementById('airQualityInfo');
+    
+        getWeatherBtn.addEventListener('click', () => {
+            const city = cityInput.value;
+            if (city) {
+                fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.coord) {
+                            const latitude = data.coord.lat;
+                            const longitude = data.coord.lon;
+    
+                            fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.main && data.weather && data.weather.length > 0) {
+                                        const temperature = data.main.temp;
+                                        const description = data.weather[0].description;
+                                        const icon = `http://openweathermap.org/img/w/${data.weather[0].icon}.png`;
+                                        const humidity = data.main.humidity;
+                                        const pressure = data.main.pressure;
+                                        const windSpeed = data.wind.speed;
+    
+                                        const now = new Date();
+                                        const currentTime = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+    
+                                        // Fetch air pollution data
+                                        fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${latitude}&lon=${longitude}&appid=${apiKey}`)
+                                            .then(response => response.json())
+                                            .then(airPollutionData => {
+                                                if (airPollutionData.list && airPollutionData.list.length > 0) {
+                                                    const airQuality = airPollutionData.list[0].main.aqi;
+                                                    const pollutants = airPollutionData.list[0].components;
+                                                    const pm2_5 = pollutants.pm2_5;
+                                                    const pm10 = pollutants.pm10;
+                                                    const no2 = pollutants.no2;
+                                                    const co = pollutants.co;
+                                                    const so2 = pollutants.so2;
+                                                    const o3 = pollutants.o3;
+    
+                                                    const airQualityDetails = `
+                                               
+    <div class="card-header">Air Quality</div>
+
+        <div class="card-content air-quality">
+            <center>
+            <p>Air Quality Index (AQI): ${airQuality}</p>
+            <p>PM2.5: ${pm2_5} μg/m³</p>
+            <p>PM10: ${pm10} μg/m³</p>
+            <p>NO2: ${no2} μg/m³</p>
+            <p>CO: ${co} μg/m³</p>
+            <p>SO2: ${so2} μg/m³</p>
+            <p>O3: ${o3} μg/m³</p>
+        </center>
+        </div>
+  
+`;
+
+// Display weather card with air quality details
+const html = `
+    <div class="card">
+        <div class="card-header">${city}</div>
+        <div class="card-content">
+            <p class="time">${currentTime}</p>
+            <img src="${icon}" alt="Weather Icon" class="weather-icon">
+            <p>Temperature: ${temperature}°C</p>
+            <p>Condition: ${description}</p>
+            <p>Humidity: ${humidity}%</p>
+            <p>Pressure: ${pressure} hPa</p>
+            <p>Wind Speed: ${windSpeed} m/s</p>
+        </div>
+     
+        ${airQualityDetails}
+    </div>
+    <br></br>
+    <h3 class="mt-4">7-Day Forecast</h3>
+    <div class="forecast-container" id="forecast"></div>
+`;
+
+    
+                                                    weatherInfo.innerHTML = html;
+    
+                                                    // Fetch and display the 7-day forecast
+                                                    fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&appid=${apiKey}`)
+                                                        .then(response => response.json())
+                                                        .then(data => {
+                                                            const forecastList = data.list;
+                                                            const forecastContainer = document.createElement('div');
+                                                            forecastContainer.classList.add('forecast-container');
+                                                            forecastContainer.id = 'forecast';
+    
+                                                            forecastList.forEach(forecast => {
+                                                                const forecastDate = new Date(forecast.dt * 1000);
+                                                                const forecastIcon = `http://openweathermap.org/img/w/${forecast.weather[0].icon}.png`;
+                                                                const forecastTemp = forecast.main.temp;
+                                                                const dayOfWeek = forecastDate.toLocaleDateString('en-US', { weekday: 'short' });
+                                                                const time = forecastDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+                                                                const forecastHtml = `
+                                                                    <div class="forecast-card">
+                                                                        <p class="time">${dayOfWeek} ${time}</p>
+                                                                        <img src="${forecastIcon}" alt="Weather Icon" class="weather-icon">
+                                                                        <p class="temp">${forecastTemp}°C</p>
+                                                                    </div>
+                                                                `;
+                                                                forecastContainer.innerHTML += forecastHtml;
+                                                            });
+    
+                                                            // Append the forecast to the weatherInfo element
+                                                            weatherInfo.appendChild(forecastContainer);
+                                                        })
+                                                        .catch(error => {
+                                                            console.error('Error fetching forecast data:', error);
+                                                            const forecastContainer = document.createElement('div');
+                                                            forecastContainer.innerHTML = '<p>Error fetching forecast data</p>';
+                                                            weatherInfo.appendChild(forecastContainer);
+                                                        });
+                                                } else {
+                                                    airQualityInfo.innerHTML = '<p>Air quality data not available for the specified city.</p>';
+                                                }
+                                            })
+                                            .catch(error => {
+                                                console.error('Error fetching air quality data:', error);
+                                                airQualityInfo.innerHTML = '<p>Error fetching air quality data</p>';
+                                            });
+                                    } else {
+                                        weatherInfo.innerHTML = '<p>Weather data not available for the specified city.</p>';
+                                        airQualityInfo.innerHTML = '<p>Air quality data not available for the specified city.</p>';
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error fetching weather data:', error);
+                                    weatherInfo.innerHTML = '<p>Error fetching weather data</p>';
+                                    airQualityInfo.innerHTML = '<p>Error fetching air quality data</p>';
+                                });
+                        } else {
+                            weatherInfo.innerHTML = '<p>Weather data not available for the specified city.</p>';
+                            airQualityInfo.innerHTML = '<p>Air quality data not available for the specified city.</p>';
+                        }
+                    });
+            }
+        });
+    </script>
+</body>
+</html> 
